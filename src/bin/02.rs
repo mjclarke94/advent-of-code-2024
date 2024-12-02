@@ -1,16 +1,39 @@
-use core::cmp::Ordering::{Equal, Greater, Less};
 use itertools::Itertools;
 advent_of_code::solution!(2);
 
-pub fn part_one(input: &str) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<usize> {
     let levels: Vec<Level> = input.lines().map(Level::from_str).collect();
-    let l: Vec<bool> = levels.iter().map(|f| f.is_smooth()).collect();
-    dbg!(l);
-    Some(2)
+    let l: usize = levels
+        .iter()
+        .map(|f| f.check_undamped())
+        .filter(|f| *f)
+        .count();
+    Some(l)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let levels: Vec<Level> = input.lines().map(Level::from_str).collect();
+    let l: usize = levels
+        .iter()
+        .map(|f| f.check_damped())
+        .filter(|f| *f)
+        .count();
+    Some(l)
+}
+
+fn check_smoothness(values: &[i32]) -> bool {
+    let increasing: bool = values
+        .iter()
+        .tuple_windows()
+        .map(|x: (&i32, &i32)| x.1 - x.0)
+        .all(|diff: i32| (1..=3).contains(&diff));
+    let decreasing: bool = values
+        .iter()
+        .tuple_windows()
+        .map(|x: (&i32, &i32)| x.0 - x.1)
+        .all(|diff: i32| (1..=3).contains(&diff));
+
+    increasing || decreasing
 }
 
 #[derive(Debug)]
@@ -27,24 +50,17 @@ impl Level {
         Self { values }
     }
 
-    fn is_smooth(&self) -> bool {
-        let decreasing = self
-            .values
-            .iter()
-            .tuples()
-            .map(|x: (&i32, &i32)| x.1 - x.0)
-            .all(|x: i32| (1..=3).contains(&x));
-        let increasing = self
-            .values
-            .iter()
-            .tuples()
-            .map(|x: (&i32, &i32)| x.1 - x.0)
-            .all(|x: i32| (1..=3).contains(&(-x)));
+    fn check_undamped(&self) -> bool {
+        check_smoothness(&self.values)
+    }
 
-        dbg!(&increasing);
-        dbg!(&decreasing);
-
-        increasing || decreasing
+    fn check_damped(&self) -> bool {
+        let l = self.values.len();
+        self.values
+            .clone()
+            .into_iter()
+            .combinations(l - 1)
+            .any(|damped| check_smoothness(&damped))
     }
 }
 
@@ -61,6 +77,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let result = part_two(&advent_of_code::template::read_file("examples", DAY));
-        assert_eq!(result, None);
+        assert_eq!(result, Some(4));
     }
 }
