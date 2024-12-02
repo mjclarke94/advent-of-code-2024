@@ -20,7 +20,7 @@ fn parse_to_vec(input: &str) -> nom::IResult<&str, (Vec<u32>, Vec<u32>)> {
 
 type UCounter = Counter<u32, u32>;
 
-fn parse_to_counter(input: &str) -> nom::IResult<&str, (UCounter, UCounter)> {
+fn parse_to_counter(input: &str) -> nom::IResult<&str, (Vec<u32>, UCounter)> {
     map(separated_list1(newline, parse_line), |v| {
         v.into_iter().unzip()
     })(input)
@@ -40,7 +40,7 @@ pub fn part_one(input: &str) -> Option<u32> {
 pub fn part_two(input: &str) -> Option<u32> {
     let (col1, col2) = parse_to_counter(input).unwrap().1;
 
-    let a: u32 = col1.into_iter().map(|f| f.0 * f.1 * col2[&f.0]).sum();
+    let a: u32 = col1.iter().map(|f| f * col2[f]).sum();
 
     Some(a)
 }
