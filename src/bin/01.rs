@@ -9,10 +9,10 @@ use nom::{
     sequence::separated_pair,
 };
 
-fn parse_line(input: &str) -> nom::IResult<&str, (u32, u32)> {
+fn parse_line(input: &[u8]) -> nom::IResult<&[u8], (u32, u32)> {
     separated_pair(u32, space1, u32)(input)
 }
-fn parse_to_vec(input: &str) -> nom::IResult<&str, (Vec<u32>, Vec<u32>)> {
+fn parse_to_vec(input: &[u8]) -> nom::IResult<&[u8], (Vec<u32>, Vec<u32>)> {
     map(separated_list1(newline, parse_line), |v| {
         v.into_iter().unzip()
     })(input)
@@ -20,13 +20,14 @@ fn parse_to_vec(input: &str) -> nom::IResult<&str, (Vec<u32>, Vec<u32>)> {
 
 type UCounter = Counter<u32, u32>;
 
-fn parse_to_counter(input: &str) -> nom::IResult<&str, (Vec<u32>, UCounter)> {
+fn parse_to_counter(input: &[u8]) -> nom::IResult<&[u8], (Vec<u32>, UCounter)> {
     map(separated_list1(newline, parse_line), |v| {
         v.into_iter().unzip()
     })(input)
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
+    let input = input.as_bytes();
     let (mut col1, mut col2) = parse_to_vec(input).unwrap().1;
 
     col1.sort();
@@ -38,6 +39,7 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
+    let input = input.as_bytes();
     let (col1, col2) = parse_to_counter(input).unwrap().1;
 
     let a: u32 = col1.iter().map(|f| f * col2[f]).sum();
