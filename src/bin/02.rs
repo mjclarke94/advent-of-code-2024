@@ -22,18 +22,9 @@ pub fn part_two(input: &str) -> Option<usize> {
 }
 
 fn check_smoothness(values: &[i32]) -> bool {
-    let increasing: bool = values
-        .iter()
-        .tuple_windows()
-        .map(|x: (&i32, &i32)| x.1 - x.0)
-        .all(|diff: i32| (1..=3).contains(&diff));
-    let decreasing: bool = values
-        .iter()
-        .tuple_windows()
-        .map(|x: (&i32, &i32)| x.0 - x.1)
-        .all(|diff: i32| (1..=3).contains(&diff));
-
-    increasing || decreasing
+    let check_ascending = values.is_sorted_by(|a, b| a < b && a.abs_diff(*b) <= 3);
+    let check_descending = values.is_sorted_by(|a, b| a > b && a.abs_diff(*b) <= 3);
+    check_ascending || check_descending
 }
 
 #[derive(Debug)]
