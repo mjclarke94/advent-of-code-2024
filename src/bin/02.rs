@@ -3,34 +3,32 @@ advent_of_code::solution!(2);
 
 use nom::{
     character::complete::{newline, space1, u8},
+    combinator::iterator,
     multi::separated_list1,
+    sequence::terminated,
     IResult,
 };
 
 type Size = u8;
 
-fn parse_line(input: &[u8]) -> IResult<&[u8], Vec<Size>> {
+fn parse_line(input: &[u8]) -> IResult<&[u8], Vec<Size>, ()> {
     separated_list1(space1, u8)(input)
-}
-
-fn parse_file(input: &[u8]) -> IResult<&[u8], Vec<Vec<Size>>> {
-    (separated_list1(newline, parse_line))(input)
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
     let input = input.as_bytes();
-    let levels = parse_file(input).ok()?.1;
+    let levels = iterator(input, terminated(parse_line, newline))
+        .filter(check_smoothness)
+        .count();
 
-    Some(levels.into_iter().filter(check_smoothness).count())
+    Some(levels)
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
     let input = input.as_bytes();
-    let levels = parse_file(input).ok()?.1;
 
     Some(
-        levels
-            .into_iter()
+        iterator(input, terminated(parse_line, newline))
             .map(|f| {
                 let l = f.len() - 1;
                 f.into_iter().combinations(l).any(|f| check_smoothness(&f))
