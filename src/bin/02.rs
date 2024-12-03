@@ -1,58 +1,50 @@
 use itertools::Itertools;
 advent_of_code::solution!(2);
 
+use nom::{
+    character::complete::{newline, space1, u32},
+    multi::separated_list1,
+    IResult,
+};
+
+type Level = Vec<u32>;
+
+fn parse_line(input: &[u8]) -> IResult<&[u8], Level> {
+    separated_list1(space1, u32)(input)
+}
+
+fn parse_file(input: &[u8]) -> IResult<&[u8], Vec<Level>> {
+    (separated_list1(newline, parse_line))(input)
+}
+
 pub fn part_one(input: &str) -> Option<usize> {
-    let levels: Vec<Level> = input.lines().map(Level::from_str).collect();
-    let l: usize = levels
-        .iter()
-        .map(|f| f.check_undamped())
-        .filter(|f| *f)
-        .count();
-    Some(l)
+    let input = input.as_bytes();
+    let levels = parse_file(input).ok()?.1;
+
+    Some(levels.into_iter().filter(check_smoothness).count())
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    let levels: Vec<Level> = input.lines().map(Level::from_str).collect();
-    let l: usize = levels
-        .iter()
-        .map(|f| f.check_damped())
-        .filter(|f| *f)
-        .count();
-    Some(l)
+    let input = input.as_bytes();
+    let levels = parse_file(input).ok()?.1;
+
+    Some(
+        levels
+            .into_iter()
+            .map(|f| {
+                let l = f.len() - 1;
+                f.into_iter().combinations(l).any(|f| check_smoothness(&f))
+            })
+            .filter(|f| *f)
+            .count(),
+    )
 }
 
-fn check_smoothness(values: &[i32]) -> bool {
+#[allow(clippy::ptr_arg)]
+fn check_smoothness(values: &Vec<u32>) -> bool {
     let check_ascending = values.is_sorted_by(|a, b| a < b && a.abs_diff(*b) <= 3);
     let check_descending = values.is_sorted_by(|a, b| a > b && a.abs_diff(*b) <= 3);
     check_ascending || check_descending
-}
-
-#[derive(Debug)]
-struct Level {
-    values: Vec<i32>,
-}
-
-impl Level {
-    fn from_str(input: &str) -> Self {
-        let values: Vec<i32> = input
-            .split_ascii_whitespace()
-            .map(|f| f.parse().unwrap())
-            .collect();
-        Self { values }
-    }
-
-    fn check_undamped(&self) -> bool {
-        check_smoothness(&self.values)
-    }
-
-    fn check_damped(&self) -> bool {
-        let l = self.values.len();
-        self.values
-            .clone()
-            .into_iter()
-            .combinations(l - 1)
-            .any(|damped| check_smoothness(&damped))
-    }
 }
 
 #[cfg(test)]
