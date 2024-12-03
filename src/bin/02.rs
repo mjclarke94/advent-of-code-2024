@@ -2,18 +2,18 @@ use itertools::Itertools;
 advent_of_code::solution!(2);
 
 use nom::{
-    character::complete::{newline, space1, u32},
+    character::complete::{newline, space1, u8},
     multi::separated_list1,
     IResult,
 };
 
-type Level = Vec<u32>;
+type Size = u8;
 
-fn parse_line(input: &[u8]) -> IResult<&[u8], Level> {
-    separated_list1(space1, u32)(input)
+fn parse_line(input: &[u8]) -> IResult<&[u8], Vec<Size>> {
+    separated_list1(space1, u8)(input)
 }
 
-fn parse_file(input: &[u8]) -> IResult<&[u8], Vec<Level>> {
+fn parse_file(input: &[u8]) -> IResult<&[u8], Vec<Vec<Size>>> {
     (separated_list1(newline, parse_line))(input)
 }
 
@@ -41,7 +41,7 @@ pub fn part_two(input: &str) -> Option<usize> {
 }
 
 #[allow(clippy::ptr_arg)]
-fn check_smoothness(values: &Vec<u32>) -> bool {
+fn check_smoothness(values: &Vec<u8>) -> bool {
     let check_ascending = values.is_sorted_by(|a, b| a < b && a.abs_diff(*b) <= 3);
     let check_descending = values.is_sorted_by(|a, b| a > b && a.abs_diff(*b) <= 3);
     check_ascending || check_descending
