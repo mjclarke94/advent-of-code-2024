@@ -27,19 +27,30 @@ pub fn part_one(input: &str) -> Option<usize> {
 pub fn part_two(input: &str) -> Option<usize> {
     let input = input.as_bytes();
 
-    Some(
-        iterator(input, terminated(parse_line, newline))
-            .map(|f| {
-                let l = f.len() - 1;
-                f.into_iter().combinations(l).any(|f| check_smoothness(&f))
+    let (stable, unstable): (Vec<Vec<_>>, Vec<Vec<_>>) =
+        iterator(input, terminated(parse_line, newline)).partition_map(|f| match check_smoothness(
+            &f,
+        ) {
+            true => itertools::Either::Left(f),
+            false => itertools::Either::Right(f),
+        });
+
+    let stable_ish = unstable
+        .into_iter()
+        .map(|f| {
+            (0..f.len()).any(|i| {
+                let rc = [&f[0..i], &f[i + 1..]].concat();
+                check_smoothness(&rc)
             })
-            .filter(|f| *f)
-            .count(),
-    )
+        })
+        .filter(|f| *f)
+        .count();
+
+    Some(stable.len() + stable_ish)
 }
 
 #[allow(clippy::ptr_arg)]
-fn check_smoothness(values: &Vec<u8>) -> bool {
+fn check_smoothness(values: &Vec<Size>) -> bool {
     let check_ascending = values.is_sorted_by(|a, b| a < b && a.abs_diff(*b) <= 3);
     let check_descending = values.is_sorted_by(|a, b| a > b && a.abs_diff(*b) <= 3);
     check_ascending || check_descending
