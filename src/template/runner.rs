@@ -4,7 +4,7 @@ use std::hint::black_box;
 use std::io::{stdout, Write};
 use std::process::Output;
 use std::time::{Duration, Instant};
-use std::{cmp, env, process};
+use std::{env, process};
 
 use crate::template::ANSI_BOLD;
 use crate::template::{aoc_cli, Day, ANSI_ITALIC, ANSI_RESET};
@@ -42,7 +42,7 @@ fn run_timed<I: Copy, T>(
     hook(&result);
 
     let run = if std::env::args().any(|x| x == "--time") {
-        bench(func, input, &base_time)
+        bench(func, input)
     } else {
         (base_time, 1)
     };
@@ -50,21 +50,32 @@ fn run_timed<I: Copy, T>(
     (result, run.0, run.1)
 }
 
-fn bench<I: Copy, T>(func: impl Fn(I) -> T, input: I, base_time: &Duration) -> (Duration, u128) {
+fn bench<I: Copy, T>(func: impl Fn(I) -> T, input: I) -> (Duration, u128) {
     let mut stdout = stdout();
 
     print!(" > {ANSI_ITALIC}benching{ANSI_RESET}");
     let _ = stdout.flush();
 
-    let bench_iterations =
-        (Duration::from_secs(1).as_nanos() / cmp::max(base_time.as_nanos(), 10)).clamp(10, 10000);
+    let mut bench_iterations = 0;
 
     let mut timers: Vec<Duration> = vec![];
 
-    for _ in 0..bench_iterations {
+    let warmup_timer = Instant::now();
+    loop {
+        black_box(func(black_box(input)));
+        if warmup_timer.elapsed() > Duration::from_secs(1) {
+            break;
+        }
+    }
+    let bench_timer = Instant::now();
+    loop {
         let timer = Instant::now();
         black_box(func(black_box(input)));
         timers.push(timer.elapsed());
+        bench_iterations += 1;
+        if bench_timer.elapsed() > Duration::from_secs(3) {
+            break;
+        }
     }
 
     (
