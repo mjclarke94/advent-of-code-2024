@@ -1,6 +1,8 @@
 advent_of_code::solution!(1);
 
+// use ahash::RandomState;
 use counter::Counter;
+use rustc_hash::FxBuildHasher;
 
 use nom::{
     character::complete::{newline, space1, u32},
@@ -18,7 +20,7 @@ fn parse_to_vec(input: &[u8]) -> nom::IResult<&[u8], (Vec<u32>, Vec<u32>)> {
     })(input)
 }
 
-type UCounter = Counter<u32, u32>;
+type UCounter = Counter<u32, u32, FxBuildHasher>;
 
 fn parse_to_counter(input: &[u8]) -> nom::IResult<&[u8], (Vec<u32>, UCounter)> {
     map(separated_list1(newline, parse_line), |v| {
