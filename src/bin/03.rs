@@ -1,13 +1,11 @@
+#![allow(unused_assignments)]
+
 advent_of_code::solution!(3);
 
-use itertools::Either::{self, Left, Right};
-
 use nom::{
-    branch::alt,
-    bytes::complete::{tag, take},
+    bytes::complete::tag,
     character::complete::u32,
-    combinator::{map, value},
-    multi::many1,
+    combinator::map,
     sequence::{delimited, separated_pair},
     IResult,
 };
@@ -19,43 +17,61 @@ fn parse_mul(input: &[u8]) -> IResult<&[u8], u32, ()> {
     )(input)
 }
 
-fn parse_one(input: &[u8]) -> IResult<&[u8], u32, ()> {
-    map(many1(alt((parse_mul, value(0, take(1u8))))), |v| {
-        v.into_iter().sum()
-    })(input)
-}
-
-fn parse_two(input: &[u8]) -> IResult<&[u8], Vec<Either<u32, bool>>, ()> {
-    many1(alt((
-        map(parse_mul, Left),
-        value(Right(true), tag("do()")),
-        value(Right(false), tag("don't()")),
-        value(Left(0), take(1u8)),
-    )))(input)
-}
-
 pub fn part_one(input: &str) -> Option<u32> {
-    let input = input.as_bytes();
-    let product = parse_one(input).unwrap().1;
-    Some(product)
-}
+    let mut input = input.as_bytes();
+    let mut tot = 0;
 
-pub fn part_two(input: &str) -> Option<u32> {
-    let input = input.as_bytes();
-    let instructions = parse_two(input).unwrap().1;
+    while !input.is_empty() {
+        if input[0] != b'm' {
+            input = &input[1..];
+            continue;
+        }
 
-    let mut _do = true;
-    let mut acc = 0;
-
-    for instr in instructions.into_iter() {
-        match instr {
-            Right(switch) => _do = switch,
-            Left(a) if _do => acc += a,
-            _ => (),
+        if let Ok((remainder, product)) = parse_mul(input) {
+            input = remainder;
+            tot += product;
+        } else {
+            input = &input[1..];
         }
     }
 
-    Some(acc)
+    Some(tot)
+}
+
+pub fn part_two(input: &str) -> Option<u32> {
+    let mut input = input.as_bytes();
+    let mut tot = 0;
+
+    while !input.is_empty() {
+        if input[0] != b'm' {
+            input = &input[1..];
+            continue;
+        }
+
+        if let Ok((remainder, product)) = parse_mul(input) {
+            input = remainder;
+            tot += product;
+        } else if let Ok((remainder, _)) = tag::<_, _, ()>(b"don't()")(input) {
+            input = remainder;
+            break;
+        }
+
+        while !input.is_empty() {
+            if input[0] != b'd' {
+                input = &input[1..];
+                continue;
+            }
+
+            if let Ok((remainder, _)) = tag::<_, _, ()>(b"do()")(input) {
+                input = remainder;
+                break;
+            } else {
+                input = &input[1..];
+            }
+        }
+    }
+
+    Some(tot)
 }
 
 #[cfg(test)]
