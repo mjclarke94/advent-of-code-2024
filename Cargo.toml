@@ -32,4 +32,3 @@ counter = { git = "https://github.com/mjclarke94/counter-rs.git", branch = "cust
 itertools = "0.13.0"
 rustc-hash = "2.1.0"
 nom = "7.1.3"
-ndarray = "0.16.1"
