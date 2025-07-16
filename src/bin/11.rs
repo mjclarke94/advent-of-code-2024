@@ -11,7 +11,7 @@ fn blink_pebble(value: S) -> Counter<S> {
     match value {
         0 => Counter::from_iter(vec![1]),
         a if a.ilog10() % 2 == 1 => {
-            let fac = (10 as S).pow((a.ilog10() + 1) / 2);
+            let fac = (10 as S).pow(a.ilog10().div_ceil(2));
             Counter::from_iter(vec![a / fac, a - (a / fac) * fac])
         }
         _ => Counter::from_iter(vec![value * 2024]),
