@@ -82,7 +82,7 @@ fn find_violation(values: &[Size], ascending: bool) -> Option<usize> {
         } else {
             values[i - 1] > values[i] && values[i - 1].abs_diff(values[i]) <= 3
         };
-        
+
         if !valid {
             return Some(i);
         }
@@ -92,27 +92,27 @@ fn find_violation(values: &[Size], ascending: bool) -> Option<usize> {
 
 fn check_after_removal(values: &[Size], remove_idx: usize, ascending: bool) -> bool {
     let mut prev: Option<Size> = None;
-    
+
     for (i, &val) in values.iter().enumerate() {
         if i == remove_idx {
             continue;
         }
-        
+
         if let Some(p) = prev {
             let valid = if ascending {
                 p < val && p.abs_diff(val) <= 3
             } else {
                 p > val && p.abs_diff(val) <= 3
             };
-            
+
             if !valid {
                 return false;
             }
         }
-        
+
         prev = Some(val);
     }
-    
+
     true
 }
 
