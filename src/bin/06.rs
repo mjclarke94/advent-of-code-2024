@@ -117,6 +117,7 @@ pub fn part_two(input: &str) -> Option<S> {
     let mut loop_count: S = 0;
 
     for obs in locs {
+        guard.reset();
         guard.obstacles.insert(obs);
         guard.solve();
 
@@ -124,7 +125,6 @@ pub fn part_two(input: &str) -> Option<S> {
             loop_count += 1
         }
 
-        guard.reset();
         guard.obstacles.remove(&obs);
     }
 
