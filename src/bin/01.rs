@@ -4,33 +4,32 @@ advent_of_code::solution!(1);
 use counter::Counter;
 use rustc_hash::FxBuildHasher;
 
-use nom::{
-    character::complete::{newline, space1, u32},
-    combinator::map,
-    multi::separated_list1,
-    sequence::separated_pair,
+use winnow::{
+    ascii::{dec_uint, newline, space1},
+    combinator::{separated, separated_pair},
+    Parser,
 };
 
-fn parse_line(input: &[u8]) -> nom::IResult<&[u8], (u32, u32)> {
-    separated_pair(u32, space1, u32)(input)
+fn parse_line(input: &mut &[u8]) -> winnow::PResult<(u32, u32)> {
+    separated_pair(dec_uint::<_, u32, _>, space1, dec_uint).parse_next(input)
 }
-fn parse_to_vec(input: &[u8]) -> nom::IResult<&[u8], (Vec<u32>, Vec<u32>)> {
-    map(separated_list1(newline, parse_line), |v| {
-        v.into_iter().unzip()
-    })(input)
+fn parse_to_vec(input: &mut &[u8]) -> winnow::PResult<(Vec<u32>, Vec<u32>)> {
+    separated(1.., parse_line, newline)
+        .map(|v: Vec<_>| v.into_iter().unzip())
+        .parse_next(input)
 }
 
 type UCounter = Counter<u32, u32, FxBuildHasher>;
 
-fn parse_to_counter(input: &[u8]) -> nom::IResult<&[u8], (Vec<u32>, UCounter)> {
-    map(separated_list1(newline, parse_line), |v| {
-        v.into_iter().unzip()
-    })(input)
+fn parse_to_counter(input: &mut &[u8]) -> winnow::PResult<(Vec<u32>, UCounter)> {
+    separated(1.., parse_line, newline)
+        .map(|v: Vec<_>| v.into_iter().unzip())
+        .parse_next(input)
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let input = input.as_bytes();
-    let (mut col1, mut col2) = parse_to_vec(input).unwrap().1;
+    let mut input = input.as_bytes();
+    let (mut col1, mut col2) = parse_to_vec(&mut input).unwrap();
 
     col1.sort();
     col2.sort();
@@ -41,8 +40,8 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    let input = input.as_bytes();
-    let (col1, col2) = parse_to_counter(input).unwrap().1;
+    let mut input = input.as_bytes();
+    let (col1, col2) = parse_to_counter(&mut input).unwrap();
 
     let a: u32 = col1.iter().map(|f| f * col2[f]).sum();
 
