@@ -31,7 +31,7 @@ tinyjson = "2.5.1"
 counter = { git = "https://github.com/mjclarke94/counter-rs.git", branch = "custom-hasher" }
 itertools = "0.13.0"
 rustc-hash = "2.1.0"
-nom = "7.1.3"
+winnow = "0.6"
 cached = { version = "0.54.0", features = ["ahash"] }
 num_enum = "0.7.3"
 memoize = "0.4.2"

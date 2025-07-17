@@ -1,32 +1,35 @@
 advent_of_code::solution!(2);
 
-use nom::{
-    character::complete::{newline, space1, u8},
-    combinator::iterator,
-    multi::separated_list1,
-    sequence::terminated,
-    IResult,
+use winnow::{
+    ascii::{dec_uint, newline, space1},
+    combinator::{repeat, separated, terminated},
+    Parser,
 };
 
 type Size = u8;
 
-fn parse_line(input: &[u8]) -> IResult<&[u8], Vec<Size>, ()> {
-    separated_list1(space1, u8)(input)
+fn parse_line(input: &mut &[u8]) -> winnow::PResult<Vec<Size>> {
+    separated(1.., dec_uint::<_, Size, _>, space1).parse_next(input)
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
-    let input = input.as_bytes();
-    let levels = iterator(input, terminated(parse_line, newline))
-        .filter(check_smoothness)
-        .count();
+    let mut input = input.as_bytes();
+    let levels: Vec<Vec<Size>> = repeat(0.., terminated(parse_line, newline))
+        .parse_next(&mut input)
+        .unwrap();
+    let levels = levels.into_iter().filter(check_smoothness).count();
 
     Some(levels)
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
-    let input = input.as_bytes();
+    let mut input = input.as_bytes();
 
-    let count = iterator(input, terminated(parse_line, newline))
+    let levels: Vec<Vec<Size>> = repeat(0.., terminated(parse_line, newline))
+        .parse_next(&mut input)
+        .unwrap();
+    let count = levels
+        .into_iter()
         .filter(check_smoothness_with_removal)
         .count();
 

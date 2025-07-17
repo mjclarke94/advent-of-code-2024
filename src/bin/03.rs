@@ -2,19 +2,20 @@
 
 advent_of_code::solution!(3);
 
-use nom::{
-    bytes::complete::tag,
-    character::complete::u32,
-    combinator::map,
-    sequence::{delimited, separated_pair},
-    IResult,
+use winnow::{
+    ascii::dec_uint,
+    combinator::{delimited, separated_pair},
+    token::literal,
+    Parser,
 };
 
-fn parse_mul(input: &[u8]) -> IResult<&[u8], u32, ()> {
-    map(
-        delimited(tag("mul("), separated_pair(u32, tag(","), u32), tag(")")),
-        |(a, b)| a * b,
-    )(input)
+fn parse_mul(input: &mut &[u8]) -> winnow::PResult<u32> {
+    delimited(
+        literal(b"mul("),
+        separated_pair(dec_uint::<_, u32, _>, b",", dec_uint::<_, u32, _>).map(|(a, b)| a * b),
+        b")",
+    )
+    .parse_next(input)
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
@@ -27,8 +28,9 @@ pub fn part_one(input: &str) -> Option<u32> {
             continue;
         }
 
-        if let Ok((remainder, product)) = parse_mul(input) {
-            input = remainder;
+        let mut parser_input = input;
+        if let Ok(product) = parse_mul(&mut parser_input) {
+            input = parser_input;
             tot += product;
         } else {
             input = &input[1..];
@@ -48,12 +50,19 @@ pub fn part_two(input: &str) -> Option<u32> {
             continue;
         }
 
-        if let Ok((remainder, product)) = parse_mul(input) {
-            input = remainder;
+        let mut parser_input = input;
+        if let Ok(product) = parse_mul(&mut parser_input) {
+            input = parser_input;
             tot += product;
-        } else if let Ok((remainder, _)) = tag::<_, _, ()>(b"don't()")(input) {
-            input = remainder;
-            break;
+        } else {
+            let mut dont_input = input;
+            if literal::<_, _, ()>(b"don't()")
+                .parse_next(&mut dont_input)
+                .is_ok()
+            {
+                input = dont_input;
+                break;
+            }
         }
 
         while !input.is_empty() {
@@ -62,8 +71,12 @@ pub fn part_two(input: &str) -> Option<u32> {
                 continue;
             }
 
-            if let Ok((remainder, _)) = tag::<_, _, ()>(b"do()")(input) {
-                input = remainder;
+            let mut do_input = input;
+            if literal::<_, _, ()>(b"do()")
+                .parse_next(&mut do_input)
+                .is_ok()
+            {
+                input = do_input;
                 break;
             } else {
                 input = &input[1..];
