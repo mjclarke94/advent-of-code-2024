@@ -57,29 +57,29 @@ pub fn part_one(input: &str) -> Option<S> {
 
 pub fn part_two(input: &str) -> Option<S> {
     let v = parse_input(input);
-    
+
     // Separate blocks and gaps
     let blocks: Vec<u8> = v.iter().step_by(2).cloned().collect();
     let gaps: Vec<u8> = v.iter().skip(1).step_by(2).cloned().collect();
-    
+
     // Build initial disk representation with file positions
     let mut disk: Vec<Option<S>> = Vec::new();
     let mut file_positions: Vec<(S, S, u8)> = Vec::new(); // (file_id, start_pos, length)
-    
+
     for (file_id, either_or_both) in blocks.iter().zip_longest(gaps.iter()).enumerate() {
         let start_pos = disk.len();
-        
+
         match either_or_both {
             itertools::EitherOrBoth::Both(&block_size, &gap_size) => {
                 // Add file blocks
                 for _ in 0..block_size {
                     disk.push(Some(file_id));
                 }
-                
+
                 if block_size > 0 {
                     file_positions.push((file_id, start_pos, block_size));
                 }
-                
+
                 // Add gap blocks
                 for _ in 0..gap_size {
                     disk.push(None);
@@ -90,7 +90,7 @@ pub fn part_two(input: &str) -> Option<S> {
                 for _ in 0..block_size {
                     disk.push(Some(file_id));
                 }
-                
+
                 if block_size > 0 {
                     file_positions.push((file_id, start_pos, block_size));
                 }
@@ -100,30 +100,30 @@ pub fn part_two(input: &str) -> Option<S> {
             }
         }
     }
-    
+
     // Process files in decreasing file ID order
     for &(file_id, _original_pos, file_length) in file_positions.iter().rev() {
         // Find current position of file (it may have moved)
         let mut current_pos = None;
-        for i in 0..disk.len() {
-            if disk[i] == Some(file_id) {
+        for (i, &block) in disk.iter().enumerate() {
+            if block == Some(file_id) {
                 current_pos = Some(i);
                 break;
             }
         }
-        
+
         if let Some(pos) = current_pos {
             // Look for leftmost suitable free space
             let mut free_start = None;
             let mut consecutive_free = 0;
-            
+
             for i in 0..pos {
                 if disk[i].is_none() {
                     if consecutive_free == 0 {
                         free_start = Some(i);
                     }
                     consecutive_free += 1;
-                    
+
                     if consecutive_free >= file_length {
                         // Found suitable space, move the file
                         if let Some(start) = free_start {
@@ -141,13 +141,13 @@ pub fn part_two(input: &str) -> Option<S> {
             }
         }
     }
-    
+
     // Calculate checksum
     Some(
         disk.iter()
             .enumerate()
             .filter_map(|(i, &file_id)| file_id.map(|id| i * id))
-            .sum()
+            .sum(),
     )
 }
 
