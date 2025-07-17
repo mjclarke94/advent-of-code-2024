@@ -17,7 +17,12 @@ Solutions for [Advent of Code](https://adventofcode.com/) in [Rust](https://www.
 | [Day 6](https://adventofcode.com/2024/day/6) | ⭐ | ⭐ |
 | [Day 7](https://adventofcode.com/2024/day/7) | ⭐ | ⭐ |
 | [Day 8](https://adventofcode.com/2024/day/8) | ⭐ | ⭐ |
-| [Day 9](https://adventofcode.com/2024/day/9) | ⭐ |   |
+| [Day 9](https://adventofcode.com/2024/day/9) | ⭐ | ⭐ |
+| [Day 11](https://adventofcode.com/2024/day/11) | ⭐ | ⭐ |
+| [Day 21](https://adventofcode.com/2024/day/21) | ⭐ | ⭐ |
+| [Day 22](https://adventofcode.com/2024/day/22) | ⭐ | ⭐ |
+| [Day 24](https://adventofcode.com/2024/day/24) | ⭐ |   |
+| [Day 25](https://adventofcode.com/2024/day/25) | ⭐ |   |
 <!--- advent_readme_stars table --->
 
 <!--- benchmarking table --->
